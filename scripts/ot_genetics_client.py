@@ -6,6 +6,7 @@
 
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
+import pandas as pd
 
 class OT_Genetics:
     ''' GraphQL client for Open Targets Genetics
@@ -56,6 +57,79 @@ class OT_Genetics:
             ]
 
         return rsid_map
+
+    def get_v2g_evidence_for_varids(self, varid_list):
+        ''' Gets v2g evidence for a list of variant IDs
+        Returns:
+            pd.df
+        '''
+        # Make query
+        res = {}
+        for chunk in get_chunk(iter(varid_list), self.chunk_size):
+            # Build inner part of query
+            inner = '\n'.join([
+                '''v{varid}:
+                genesForVariant(variantId:"{varid}") {{
+                     gene {{
+                       id
+                     }}
+                     overallScore
+                     qtls {{
+                       typeId
+                       sourceId
+                       aggregatedScore
+                     }}
+                     intervals {{
+                       typeId
+                       sourceId
+                       aggregatedScore
+                     }}
+                     functionalPredictions {{
+                       typeId
+                       sourceId
+                       aggregatedScore
+                     }}
+                }}
+                    '''.format(varid=varid)
+                for varid in chunk ])
+            # Build query
+            query = 'query get_v2g{ ' + inner + '}'
+            # Query and return
+            chunk_res = self.client.execute(gql(query))
+            res.update(chunk_res)
+
+        return v2g_to_df(res)
+
+def v2g_to_df(res):
+    ''' Convert the response from V2G query to a pandas df
+    '''
+    rows = []
+    for varid, records in res.items():
+        varid = varid.lstrip('v')
+        for record in records:
+            row = {'varid': varid}
+            row['gene_id'] = record['gene']['id']
+            row['overallScore'] = record['overallScore']
+            for type in ['qtls', 'intervals', 'functionalPredictions']:
+                for entry in record[type]:
+                    key = '_'.join([entry['typeId'], entry['sourceId']])
+                    row[key] = entry['aggregatedScore']
+            rows.append(row)
+    df = pd.DataFrame.from_dict(rows)
+
+    # Move columns to front
+    df = move_cols_to_front(df, ['varid', 'gene_id', 'overallScore'])
+
+    return df
+
+def move_cols_to_front(df, cols):
+    ''' Moves a list of columns to the front of a pandas df
+    '''
+    existing_columns = df.columns.tolist()
+    for col in cols:
+        existing_columns.remove(col)
+
+    return df.loc[:, cols + existing_columns]
 
 def get_chunk(it, n):
     ''' Returns chunks of an iterator
