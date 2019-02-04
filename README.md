@@ -20,3 +20,7 @@ study_id (str, nullable): we need to be able to trace the publication to a study
 ### Requirements
 
 - gql
+
+### Todo
+
+- Normalise within groups (`varid`)

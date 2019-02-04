@@ -28,6 +28,7 @@ def main():
         # Check if output exists
         outf = os.path.join(out_dir, os.path.split(inf)[1])
         if os.path.exists(outf):
+            print('Warning, {} exists, skipping...'.format(outf))
             continue
 
         # Clean the input
