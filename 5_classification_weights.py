@@ -44,11 +44,13 @@ def main():
     data = pd.read_csv(in_data, sep='\t', header=0)
 
     # Extract features and outcomes
-    grps, X, y = extract_features(data, features, remove_low_variance=True)
+    grps, X, y = extract_features(data, features, 'varid',
+                                  remove_low_variance=True,
+                                  group_scale=True)
 
     # Test classifiers
     test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
-    # test_classifiers(X, y, grps, metric='roc_auc', folds=5)
+    test_classifiers(X, y, grps, metric='roc_auc', folds=5)
 
     # Learn feature weights
     learn_logistic_regression_coef(X, y, features)
@@ -98,19 +100,33 @@ def test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5):
 
     return 0
 
-def extract_features(df, feature_cols, remove_low_variance=True):
+def extract_features(df, feature_cols, group_col, remove_low_variance=True,
+                     group_scale=False):
     ''' Returns feature (X), outcomes (y) and varid groups
     Params:
         df (pd.df)
         feature_cols (list)
+        group_col (str)
+        remove_low_variance (bool): remove rows with no variance in the predictors
+        group_scale (bool):
     Returns
         groups, X, y (np.array)
     '''
-    # Extract
     y = ( (df.gene_id == df.gold_standard_gene_id)
            .replace({True: 1, False: 0}) )
-    X = df.loc[:, feature_cols]
-    grps = df.varid
+    grps = df[group_col]
+    # Group normalise
+    if not group_scale:
+        X = df.loc[:, feature_cols]
+    else:
+        # Scale
+        X = (
+            df.loc[:, [group_col] + feature_cols]
+              .groupby(group_col)
+              .transform(maxabs_scaler)
+        )
+        # Fill NAs
+        X = X.fillna(0)
 
     # Remove rows with no variance
     if remove_low_variance:
@@ -122,6 +138,11 @@ def extract_features(df, feature_cols, remove_low_variance=True):
         grps = grps.loc[to_keep]
 
     return grps.to_numpy(), X.to_numpy(), y.to_numpy()
+
+def maxabs_scaler(x):
+    ''' Max absolute scaler
+    '''
+    return (x / float(x.abs().max()))
 
 if __name__ == '__main__':
 
