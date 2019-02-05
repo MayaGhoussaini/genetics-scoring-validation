@@ -55,12 +55,12 @@ def main():
                                   group_scale=True)
 
     # Test classifiers
-    test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
-    test_classifiers(X, y, grps, metric='roc_auc', folds=5)
-    test_classifiers(X, y, grps, metric='f1', folds=5)
-    test_classifiers(X, y, grps, metric='recall', folds=5)
-    recall_weighted = make_scorer(recall_score, average='weighted')
-    test_classifiers(X, y, grps, metric=recall_weighted, folds=5)
+    # test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
+    # test_classifiers(X, y, grps, metric='roc_auc', folds=5)
+    # test_classifiers(X, y, grps, metric='f1', folds=5)
+    # test_classifiers(X, y, grps, metric='recall', folds=5)
+    # recall_weighted = make_scorer(recall_score, average='weighted')
+    # test_classifiers(X, y, grps, metric=recall_weighted, folds=5)
 
     # Learn feature weights
     learn_logistic_regression_coef(X, y, features)
@@ -76,8 +76,15 @@ def learn_logistic_regression_coef(X, y, x_labels):
     '''
     X_const = pd.DataFrame(add_constant(X), columns=['Intercept'] + x_labels)
     clf = Logit(y, X_const)
+    # Non regularised
     res = clf.fit()
-    print(res.summary())
+    print('\n', res.summary())
+    # # L1 regularised
+    # res = clf.fit_regularized(method='l1')
+    # print('\n', res.summary())
+    # # l1_cvxopt_cp regularised
+    # res = clf.fit_regularized(method='l1_cvxopt_cp')
+    # print('\n', res.summary())
 
     return 0
 
