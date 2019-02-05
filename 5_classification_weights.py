@@ -8,7 +8,9 @@ import sys
 import os
 import pandas as pd
 import numpy as np
+from functools import partial
 
+# Classifiers
 from sklearn.model_selection import GroupKFold
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
@@ -18,8 +20,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
+# Scorers
+from sklearn.metrics import make_scorer, recall_score
 from sklearn.model_selection import cross_val_score
-
+# Stats
 from statsmodels.discrete.discrete_model import Logit
 from statsmodels.tools.tools import add_constant
 
@@ -51,6 +55,10 @@ def main():
     # Test classifiers
     test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
     test_classifiers(X, y, grps, metric='roc_auc', folds=5)
+    test_classifiers(X, y, grps, metric='f1', folds=5)
+    test_classifiers(X, y, grps, metric='recall', folds=5)
+    recall_weighted = make_scorer(recall_score, average='weighted')
+    test_classifiers(X, y, grps, metric=recall_weighted, folds=5)
 
     # Learn feature weights
     learn_logistic_regression_coef(X, y, features)
@@ -73,9 +81,12 @@ def learn_logistic_regression_coef(X, y, x_labels):
 
 def test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5):
     ''' Use sklearn to test different classifiers
+
+        metric choices: https://scikit-learn.org/stable/modules/model_evaluation.html#common-cases-predefined-values
+
     '''
 
-    print('metric=={0}'.format(metric))
+    print('\nmetric=={0}'.format(metric))
 
     classifier_dict = {
         'LinearSVC': LinearSVC(),
