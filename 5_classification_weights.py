@@ -26,6 +26,8 @@ from sklearn.model_selection import cross_val_score
 # Stats
 from statsmodels.discrete.discrete_model import Logit
 from statsmodels.tools.tools import add_constant
+# Scaler
+from scripts.ml import maxabs_scaler
 
 import sklearn
 print('sklearn version: {}\n'.format(sklearn.__version__))
@@ -149,11 +151,6 @@ def extract_features(df, feature_cols, group_col, remove_low_variance=True,
         grps = grps.loc[to_keep]
 
     return grps.to_numpy(), X.to_numpy(), y.to_numpy()
-
-def maxabs_scaler(x):
-    ''' Max absolute scaler
-    '''
-    return (x / float(x.abs().max()))
 
 if __name__ == '__main__':
 
