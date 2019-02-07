@@ -55,12 +55,12 @@ def main():
                                   group_scale=True)
 
     # Test classifiers
-    # test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
-    # test_classifiers(X, y, grps, metric='roc_auc', folds=5)
-    # test_classifiers(X, y, grps, metric='f1', folds=5)
-    # test_classifiers(X, y, grps, metric='recall', folds=5)
-    # recall_weighted = make_scorer(recall_score, average='weighted')
-    # test_classifiers(X, y, grps, metric=recall_weighted, folds=5)
+    test_classifiers(X, y, grps, metric='balanced_accuracy', folds=5)
+    test_classifiers(X, y, grps, metric='roc_auc', folds=5)
+    test_classifiers(X, y, grps, metric='f1', folds=5)
+    test_classifiers(X, y, grps, metric='recall', folds=5)
+    recall_weighted = make_scorer(recall_score, average='weighted')
+    test_classifiers(X, y, grps, metric=recall_weighted, folds=5)
 
     # Learn feature weights
     learn_logistic_regression_coef(X, y, features)
