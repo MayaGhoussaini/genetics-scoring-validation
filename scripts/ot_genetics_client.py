@@ -14,12 +14,16 @@ class OT_Genetics:
     def __init__(self, api_endpoint=None, chunk_size=50):
         self.chunk_size = chunk_size
         if api_endpoint:
-            url = api_endpoint
+            otg_url = api_endpoint
+        else:
+            otg_url = 'https://genetics-api.opentargets.io/graphql'
+
         # Setup graphql client
         _transport = RequestsHTTPTransport(
-            url = 'https://genetics-api.opentargets.io/graphql',
+            url = otg_url,
             use_json = True
         )
+        
         self.client = Client(
             transport=_transport,
             fetch_schema_from_transport=True,
